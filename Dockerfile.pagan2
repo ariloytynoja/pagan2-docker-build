@@ -1,0 +1,3 @@
+FROM pagan2app
+ENTRYPOINT ["/pagan2/src/pagan2"]
+CMD []

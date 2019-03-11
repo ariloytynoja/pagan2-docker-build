@@ -1,0 +1,9 @@
+FROM pagan2libs
+
+WORKDIR /pagan2
+RUN git init
+RUN git remote add origin https://github.com/ariloytynoja/pagan2-msa.git
+RUN git pull origin master
+
+RUN cd src && make -j4
+

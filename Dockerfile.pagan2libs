@@ -1,0 +1,56 @@
+FROM ubuntu:14.04
+RUN apt-get update && apt-get install -y \
+	autoconf \
+	automake \
+	build-essential \
+	gcc \
+	g++ \
+	wget \
+	zlib1g \
+	zlib1g-dev
+
+RUN mkdir /build /pagan2
+WORKDIR /build
+
+RUN wget http://sourceforge.net/projects/boost/files/boost/1.58.0/boost_1_58_0.tar.gz && \
+	tar xzf boost_1_58_0.tar.gz
+
+WORKDIR /build/boost_1_58_0
+
+RUN sh ./bootstrap.sh --prefix=/pagan2/boost --with-libraries=program_options,regex,system,thread && \
+	echo "using gcc : 4.8 : /usr/bin/g++-4.8 ; " >> tools/build/src/user-config.jam && \
+	./bjam --toolset=gcc-4.8 threading=multi link=static --prefix=/pagan2/boost install
+
+WORKDIR /build
+RUN wget ftp://ftp.ncbi.nih.gov/toolbox/ncbi_tools++/ARCHIVE/12_0_0/ncbi_cxx--12_0_0.tar.gz && \
+	tar xzf ncbi_cxx--12_0_0.tar.gz
+
+WORKDIR /build/ncbi_cxx--12_0_0
+
+RUN ./configure --prefix=/pagan/ncbi --without-debug --without-check --without-dll --without-gui \
+	--with-optimization --with-mt --with-64 --with-boost=/pagan2/boost 
+
+RUN	cd GCC480-ReleaseMT64/build && make all_r -j4
+
+ENV SOURCE /build/ncbi_cxx--12_0_0/GCC480-ReleaseMT64
+ENV TARGET /pagan2/ncbi/GCC480-ReleaseMT64
+
+RUN mkdir -p "$TARGET" && mv "$SOURCE/lib" "$TARGET" && mv "$SOURCE/inc" "$TARGET" && \
+	mv "$SOURCE/../include" "$TARGET/.."
+
+RUN echo "#define HAVE_IS_SORTED 1" >> "$TARGET/inc/ncbiconf_unix.h"
+
+RUN apt-get update && apt-get install -y \
+	git \
+	libtool
+
+WORKDIR /build
+RUN git clone https://github.com/curl/curl.git
+WORKDIR /build/curl
+
+RUN ./buildconf 
+RUN ./configure --prefix=/pagan2/curl --disable-shared --without-ssl --enable-static  --disable-ldap --disable-sspi
+RUN make && make install
+
+WORKDIR /
+RUN rm -r /build
