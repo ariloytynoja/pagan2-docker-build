@@ -1,0 +1,11 @@
+FROM pagan2app
+
+WORKDIR /pagan2
+RUN cp src/pagan2 bin/
+RUN wget -q https://mafft.cbrc.jp/alignment/software/mafft-7.427-linux.tgz
+RUN tar xzf mafft-7.427-linux.tgz && mv mafft-linux64/mafftdir bin/ && rm mafft-7.427-linux.tgz
+RUN wget -q http://www.microbesonline.org/fasttree/FastTree -O bin/fasttree && chmod +x bin/fasttree
+RUN wget -q http://ftp.ebi.ac.uk/pub/software/vertebrategenomics/exonerate/exonerate-2.2.0-x86_64.tar.gz
+RUN tar xzf exonerate-2.2.0-x86_64.tar.gz && mv exonerate-2.2.0-x86_64/bin/exonerate bin/ && rm exonerate-2.2.0-x86_64.tar.gz
+RUN tar cvzf pagan2apps.tgz /pagan2/bin
+#ENV MAFFT_BINARIES=/pagan2/bin/mafftdir/libexec

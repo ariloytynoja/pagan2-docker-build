@@ -1,3 +1,13 @@
-FROM pagan2app
-ENTRYPOINT ["/pagan2/src/pagan2"]
+FROM alpine
+RUN mkdir /data
+WORKDIR /
+COPY pagan2apps.tgz .
+RUN tar xzf pagan2apps.tgz && \
+ ln -s /pagan2/bin/pagan2 /usr/local/bin && \
+ ln -s /pagan2/bin/mafftdir/bin/mafft /usr/local/bin && \
+ ln -s /pagan2/bin/fasttree /usr/local/bin && \
+ ln -s /pagan2/bin/exonerate /usr/local/bin
+ENV MAFFT_BINARIES=/pagan2/bin/mafftdir/libexec
+WORKDIR /data
+ENTRYPOINT ["pagan2", "--docker"]
 CMD []
